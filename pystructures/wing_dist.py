@@ -1,5 +1,4 @@
 import numpy as np
-from typing import Tuple
 
 
 def calc_average_c_dist(wing_span: float,
