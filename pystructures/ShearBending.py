@@ -30,7 +30,7 @@ def shearstress(y: np.ndarray,
 
 def bendingmoment(y: np.ndarray, average_l_dist: np.ndarray) -> np.ndarray:
     bending_moment = np.zeros_like(y)
-    for i in y:
+    for i in range(y.shape[0]):
         bending_moment[i] = np.dot(y[i], average_l_dist) - np.dot(y[0:i], average_l_dist[0:i])
     return bending_moment
 
