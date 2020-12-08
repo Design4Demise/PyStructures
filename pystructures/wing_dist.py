@@ -1,30 +1,82 @@
 import numpy as np
 
 
-def calc_average_c_dist(wing_span: float,
+def schrenks_chord_dist(wing_span: float,
                         root_chord: float,
                         tip_chord: float,
                         wing_area: float,
                         n_points: int = 21) -> np.ndarray:
+
+    """Calculate Chord Distribution - Schrenk's Approximation.
+
+    Parameters
+    ----------
+    wing_span: float
+        Wing span
+    root_chord: float
+        Length of the chord at the root
+    tip_chord:
+        Length of the chord at the tip
+    wing_area: float
+        Area of the wing
+    n_points: int
+        Number of points to use in discretisation
+
+    Returns
+    -------
+    schrenks_dist: np.ndarray
+        Chord Distribution
+    """
 
     lamb_da = tip_chord / root_chord
-    y = np.linspace(0, wing_span / 2, n_points)
-    trap_c_dist = root_chord * (1 - (2 * y / wing_span) * (1 - lamb_da))                            # Trapezoidal Chord Distribution
-    ellip_c_dist = (4 * wing_area) / (np.pi * wing_span) * (1 - (2 * y / wing_span) ** 2) ** 0.5    # Elliptical Chord Distribution
-    average_c_dist = (trap_c_dist+ellip_c_dist)/2                                                   # Average Chord Distribution
+    span_loc = np.linspace(0, wing_span / 2, n_points)
 
-    return average_c_dist
+    # --> raymer :: eqn :: 14.9
+    trapezoidal_dist = root_chord * (1 - (2 * span_loc / wing_span) * (1 - lamb_da))
+
+    # --> raymer :: eqn :: 14.11
+    eliptical_dist = (4 * wing_area) / (np.pi * wing_span) * np.sqrt(1 - (2 * span_loc / wing_span) ** 2)
+
+    # average chord distribution - schrenks approximation
+    schrenks_dist = (trapezoidal_dist + eliptical_dist ) / 2
+    
+    return schrenks_dist
 
 
-def calc_average_l_dist(q: float,
-                        cl_alpha: float,
-                        wing_span: float,
-                        root_chord: float,
-                        tip_chord: float,
-                        wing_area: float,
-                        n_points: int = 21) -> np.ndarray:
+def schrenks_lift_dist(q: float,
+                       cl: float,
+                       wing_span: float,
+                       root_chord: float,
+                       tip_chord: float,
+                       wing_area: float,
+                       n_points: int = 21) -> np.ndarray:
 
-    c_dist = calc_average_c_dist(wing_span, root_chord, tip_chord, wing_area, n_points)
-    average_l_dist = q * cl_alpha * c_dist            # Average Lift Distribution
+    """Calculate Lift Distribution According to Schrenk's Approximation
 
-    return average_l_dist
+    Parameters
+    ----------
+    q: float
+        Dynamic Pressure
+    cl: float
+        Lift Curve Slope
+    wing_span: float
+        Wing span
+    root_chord: float
+        Length of the chord at the root
+    tip_chord:
+        Length of the chord at the tip
+    wing_area: float
+        Area of the wing
+    n_points: int
+        Number of points to use in discretisation
+
+    Returns
+    -------
+    schrenks_lift_dist: np.ndarray
+        Lift Distribution
+    """
+
+    c_dist = schrenks_chord_dist(wing_span, root_chord, tip_chord, wing_area, n_points)
+    schrenks_lift_dist = q * cl * c_dist
+
+    return schrenks_lift_dist
